@@ -1,0 +1,5 @@
+*.pyc
+*.rar
+.idea/
+historial/
+gui_tests/

@@ -1,0 +1,35 @@
+Decidir:
+- Datos desde el servidor o el js?
+
+Analyze anti-windup methods:
+- Saturate 
+- Reset integral on threshold
+- Start integrating on steady-state
+
+kd = ...
+ki = ...
+kp = ...
+ki = calculate_antiwindup(ki)
+
+
+
+##########
+#  Done  #
+##########
+
+Issue 1
+-------
+Problem:
+- Basic client script doesn't work
+Hypotheses:
+- Are localhosts the same? Maybe Live Share is masking the ocp server
+- Maybe google drive file stream is messing things up
+Analysis:
+- Wireshark showed outbound and inbound connections
+  from the 4840 port when running client.connect(), 
+  therefore the networking works just fine
+Solved:
+- Issue was with the query; the names were wrong!
+- We were querying "Proceso Tanques" instead of "Proceso Tanques"
+- Besides, the exception catch was not properly done, and the initial testing missed 
+  out on checking that objectsNode was indeed defined even though h1 wasn't

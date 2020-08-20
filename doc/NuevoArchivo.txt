@@ -1,0 +1,38 @@
+Hola Hola
+
+Podemos escribir concurrentemente en los archivos :o
+
+Hay una extension que deja comunicarse con MATLAB también, entonces los tres podemos trabajar en un script al mismo tiempo y cada uno ejecutarlo por su lado :D
+
+Que creen, mas facil que deje el Live Share prendido aquí siempre o poner el directorio del lab en google drive y que lo vayan sincronizando con Google Drive File Stream?
+
+
+
+
+Me funciono!, lees esto?
+Soy pedro
+
+Siiiii
+Holaaa
+
+Se deberia poder correr desde aqui porque tambien se pueden compartir servidores y terminales
+Te sale un cmd en Shared Terminals?
+Sip!
+Entonces correriamos python a traves de eso, ojala con un servidor siempre corriendo
+
+Bacan, porque vscode trae integracion con anaconda
+Si instalas la extension de anaconda te va a configurar el environment y todo
+👍👍
+dale , buscare esa extension de anaconda-
+
+super
+
+genial
+
+ahi estoy leyendo el terminal. parece que si
+
+
+buenisimo!
+ahora nos faltaria linkear esto a python y dsps a matlab?
+o el plan sería escribir el codigo aqui y 
+dsps cada uno hace copypaste y lo corre?
