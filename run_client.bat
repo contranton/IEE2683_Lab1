@@ -1,2 +1,2 @@
 cd client
-python dashboard_server.py
+python dashboard.py
