@@ -11,7 +11,7 @@
 
 - Correr `run_server.bat` para inicializar la planta y el servidor OPC
   
-- Correr `run_client.bat` para lanzar el controlador
+- Correr `run_client.bat` (en una nueva terminal) para lanzar el controlador
   
 - El _dashboard_ se encuentra en la dirección [http://localhost:5000/](http://localhost:5000/).
 
