@@ -123,9 +123,9 @@ class Controller():
 
     def set_voltages(self, v1=None, v2=None):
         voltage_nodes = self.voltages
-        if v1:
+        if v1 is not None:
             voltage_nodes[1].set_value(v1)
-        if v2:
+        if v2 is not None:
             voltage_nodes[2].set_value(v2)
 
     #######################
