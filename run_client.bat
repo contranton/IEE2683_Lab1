@@ -1,2 +1,5 @@
+@echo off
 cd client
-python dashboard.py
+start python dashboard.py
+if %ERRORLEVEL% NEQ 0 pause
+cd ..
