@@ -44,14 +44,14 @@
                     <tr>
                         <br>
                         <th><input type="button" value="Cero" id="voltage1-zero"></th>
-                        <th><input type="range" name="Voltaje 1" id="voltage1-slider" , min=-1 max=1 step=0.01></th>
-                        <th><input type="text" name="" id="voltage1-text"></th>
+                        <th><input type="range" id="voltage1-slider" , min=-1 max=1 step=0.01></th>
+                        <th><input type="text" name="v1" id="voltage1-text"></th>
                     </tr>
                     <tr><th class="th-bottom-divider" colspan="3">Voltaje 2</th></tr>
                     <tr>
                         <th><input type="button" value="Cero" id="voltage2-zero"></th>
-                        <th><input type="range" name="Voltaje 2" id="voltage2-slider" , min=-1 max=1 step=0.01></th>
-                        <th><input type="text" name="" id="voltage2-text"></th>
+                        <th><input type="range" id="voltage2-slider" , min=-1 max=1 step=0.01></th>
+                        <th><input type="text" name="v2" id="voltage2-text"></th>
                     </tr>
                 </table>
             </div>
@@ -66,20 +66,20 @@
                     </tr>
                     <tr>
                         <th class="left">Activar PID</th>
-                        <th class="right"><input type="checkbox" id="pid-on"><br></th>
+                        <th class="right"><input type="checkbox" name="pid-on" id="pid-on"><br></th>
                     </tr>
                     <tr>
                         <th class="left">Kp</th>
-                        <th class="right"><input class="fit" type="number" id="Kp-gain" label="Kp" value="0.0"></th>
+                        <th class="right"><input class="fit" type="number" id="Kp-gain" name="Kp" value="0.0"></th>
                     </tr>
                     <tr>
                         <th class="left">Kd</th>
-                        <th class="right"><input class="fit" type="number" id="Kd-gain" label="Kd" value="0.0"></th>
+                        <th class="right"><input class="fit" type="number" id="Kd-gain" name="Kd" value="0.0"></th>
                     </tr>
 
                     <tr>
                         <th class="left">Ki</th>
-                        <th class="right"><input class="fit" type="number" id="Ki-gain" label="Ki" value="0.0"></th>
+                        <th class="right"><input class="fit" type="number" id="Ki-gain" name="Ki" value="0.0"></th>
                     </tr>
                     <!-- Anti windup -->
                     <tr>
@@ -87,12 +87,12 @@
                     </tr>
                     <tr>
                         <th class="left">Activar</th>
-                        <th class="right"><input type="checkbox" name="Activar" id="anti-windup-on"></th>
+                        <th class="right"><input type="checkbox" name="windup-on" id="anti-windup-on"></th>
                     </tr>
 
                     <tr>
                         <th class="left">Valor</th>
-                        <th class="right"><input type="number" id="anti-windup-gain" label="Ki" value="0.0"></th>
+                        <th class="right"><input type="number" id="anti-windup-gain" name="Ki-windup" value="0.0"></th>
                     </tr>
 
                 </table>
