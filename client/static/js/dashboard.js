@@ -81,6 +81,7 @@ $(document).ready(function () {
     });
 
     socket.on('server_user-begin-ctrl', function(){
+        $("#pid-div").hide();
         $("#ctrl-div").show();
         window._oldbtntext = $("#ctrl-mode").prop('value');
         $("#ctrl-mode").prop('value', "Finalizar");
@@ -96,6 +97,7 @@ $(document).ready(function () {
 
     socket.on('server_user-end-ctrl', function(){
         $("#ctrl-div").hide();
+        $("#pid-div").show();
         $("#ctrl-mode").prop('value', window._oldbtntext);
     })
 
@@ -108,6 +110,18 @@ $(document).ready(function () {
     $("#voltage2-slider").on('input', function (){
         $("#voltage2-text").attr('value', $(this).val());
         socket.emit('client_set-voltage2', parseFloat($(this).val()));
+    })
+
+    $("#voltage1-zero").click(function(){
+        $("#voltage1-text").attr('value', 0);
+        $("#voltage1-slider").val(0);
+        socket.emit('client_set-voltage1', parseFloat("0.0"));
+    })
+
+    $("#voltage2-zero").click(function(){
+        $("#voltage2-text").attr('value', 0);
+        $("#voltage2-slider").val(0);
+        socket.emit('client_set-voltage2', parseFloat("0.0"));
     })
 
     // Server-pushed data
