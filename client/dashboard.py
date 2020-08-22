@@ -21,14 +21,6 @@ global control
 
 #####################################
 # Data source
-global x_
-x_ = 0
-def get_message():
-    global x_
-    #time.sleep(DATA_INTERVAL/1000)
-    x_ += random.random()*2 - 1
-    return x_
-
 def event_stream(lock, do_stop):
     while True:
         if do_stop(): break
@@ -70,6 +62,7 @@ class User(UserMixin):
 
 ######################################
 # Flask server setup
+
 app = Flask(__name__)
 app.secret_key = 'omg nadie va a saber que esta es mi 11ave secreta por favor no me 1a roben pls :3'
 
@@ -85,11 +78,6 @@ def load_user(id):
     if id in User.users.keys():
         User.usernames_for_logout.add(id)
     return User.users.get(id)
-
-# @login_manager.request_loader
-# def request_loader(request):
-#     username = request.form.get("username")
-#     return User(username)
 
 @app.before_first_request
 def clear_trash():
@@ -138,7 +126,8 @@ def login():
 
     return redirect(url_for('dashboard'))
 
-# Client responses
+############################################
+# Client connection and disconection
 
 @socketio.on('client_connect', namespace='/dashboard')
 def update_users_on_connect():
@@ -182,6 +171,9 @@ def attempt_remove_user(id):
         socketio.emit('server_enable-ctrl', broadcast=True)
         return
 
+#########################################
+# Response management
+
 @socketio.on('ctrl-mode', namespace='/dashboard')
 def change_control():
     if(current_user.has_control):
@@ -210,6 +202,8 @@ def set_voltage2(value):
 @login_manager.unauthorized_handler
 def unauthorized_handler():
     return redirect(url_for("login"))
+
+###########################################
 
 if __name__ == '__main__':
     global control
