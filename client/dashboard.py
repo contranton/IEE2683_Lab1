@@ -197,7 +197,7 @@ def change_control():
 
 @socketio.on('client_set-voltage1', namespace='/dashboard')
 def set_voltage1(value):
-    if type(value) is not float:
+    if (type(value) is not float) and (type(value) is not int):
         return
     control.set_voltages(v1=value)
 
