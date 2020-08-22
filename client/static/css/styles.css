@@ -10,12 +10,44 @@
     -o-user-select:none;
 }
 
+th{
+    white-space:nowrap;
+}
+
 p, input{
     user-select: text;
     -webkit-user-select: text;
     -khtml-user-select:text;
     -moz-user-select: text;
     -o-user-select:text;
+}
+
+table{
+    height:100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+input.fit{
+    width:100%;
+}
+
+th{
+    width:100%;
+    white-space: normal;
+}
+
+.th-bottom-divider{
+    border-bottom: 1px solid #ddd;
+    padding: 20px 0 0 0 ;
+}
+
+th.left{
+    text-align:right
+}
+
+th.right{
+    text-align:left
 }
 
 .chart {
