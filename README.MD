@@ -22,3 +22,13 @@
 ## Referencias para OPC UA:
 - OPC para Python: https://python-opcua.readthedocs.io/en/latest/
 - OPC UA detallado: https://documentation.unified-automation.com/uasdkhp/1.0.0/html/_l1_opc_ua_fundamentals.html
+
+# TODO:
+- Dashboard.py debe tener **una sola** función que broadcastee el estado del controlador
+  - manual-ctrl-available: {true} o {false, "editor": NombreEditando}
+  - Ganancias del PID
+  - Quienes estan conectados
+
+- Refresh-rate visual debe basarse en segundos transcurridos y no el número de datos recibidos
+  - El segundo varía muchísimo dependiendo del rendimiento del servidor
+
