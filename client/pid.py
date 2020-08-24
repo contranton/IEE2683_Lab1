@@ -24,17 +24,21 @@ class PID:
         # PID Parameters
         self.reference = 0
         
-        self._Ki = 0
+        self._Ki = 1
         self.Kd = 0
         self.Kp = 0
+
+        self.antiwindup_on = False
 
         self.integral = 0            # Accumulated error
         self.last_sign = 1           # Last error sign
         self.magnitude_last_out = 0  # Test for output saturation
 
+        self.magnitude_saturation = 1
+
         # Derivative filter
         self.N_filter = 2
-        self.window = deque(maxlen=self.N_filter)
+        self.window = deque([0], maxlen=self.N_filter)
 
     @property
     def error(self):
@@ -52,7 +56,9 @@ class PID:
         Returns:
             double: PID control signal
         """
-        return self.Kp*self.error + self.Ki*self.integral + self.Kd*self.filtered_error
+        print(f"reference: {self.reference}, latest: {self.window[-1]}")
+        u = self.Kp*self.error + self.Ki*self.integral + self.Kd*self.filtered_error
+        return np.clip(u, -self.magnitude_saturation, self.magnitude_saturation)
 
     def add_sample(self, value):
         """Adds new data point
@@ -73,7 +79,9 @@ class PID:
 
     def set_reference(self, value):
         """Set reference point for error calculation"""
-        self.reference = value
+        if value is None:
+            value = 0
+        self.reference = float(value)
 
     @property
     def Ki(self):
@@ -82,21 +90,27 @@ class PID:
         Returns:
             double: Ki if output unsaturated, 0 otherwise
         """
-        if self.magnitude_last_out < self.magnitude_saturation:
-            return self._Ki
+        if self.antiwindup_on:
+            if self.magnitude_last_out < self.magnitude_saturation:
+                return self._Ki
+            else:
+                return 0
         else:
-            return 0
+            return self._Ki
 
     def set_Ki(self, value):
         """Set Integral Gain"""
+        print("Set PID Ki")
         self._Ki = value
 
     def set_Kd(self, value):
         """Set Derivative Gain"""
+        print("Set PID Kd")
         self.Kd = value
 
     def set_Kp(self, value):
         """Set Proportional Gain"""
+        print("Set PID Kp")
         self.Kp = value
 
     def set_filter_length(self, value):
@@ -118,7 +132,7 @@ class PID:
         return np.convolve(self.window, np.ones(self.N_filter)/self.N_filter, mode='valid')[0]
 
     def activate_antiwindup(self, value):
-        pass
+        self.antiwindup_on = value
 
     def antiwindup_gain(self, value):
         pass

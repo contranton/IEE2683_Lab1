@@ -9,6 +9,8 @@ var DELAY_PER_REDRAW = 0;
 // Data arrays (independent from plotting) to be updated from live data
 // Need to be explicitly declared to work with TimeChart
 const zero = [];
+var ref_h1_arr = [];
+var ref_h2_arr = [];
 
 // Addressable data-store
 const data_store = {
@@ -38,6 +40,9 @@ var ID = 0;
 var socket;
 var username;
 var is_controling = false;
+
+var ref_h1 = 0;
+var ref_h2 = 0;
 
 $(document).ready(function () {
     socket = io("http://" + document.domain + ":" + location.port + "/dashboard");
@@ -123,15 +128,14 @@ $(document).ready(function () {
         $("#voltage2-slider").val(0);
     })
 
-    // Server-pushed data
-    socket.on('server_userlist', function (msg) {
-        $('#users').html("<ul></ul>")
-        console.log("Updating users")
-        var usrs = JSON.parse(msg.data);
-        for (var user of usrs) {
-            $('#users').append("<li>" + user + "</li>")
+    $("#params-div").find("gamma").on('input', function(){
+        if($(this).val() > $(this).attr('max')){
+            $(this).val($(this).attr('max'))
+        }else if($(this).val() < $(this).attr('min')){
+            $(this).val($(this).attr('min'))
         }
-    });
+    })
+
 
     var n_redraw = {};
     socket.on('server_push', function (msg) {
@@ -141,6 +145,8 @@ $(document).ready(function () {
             // Update data
             var t_ = performance.now() - T_SIZE;
             data_store[variable].push({ x: t_, y: value });
+            ref_h1_arr.push({ x: t_, y: ref_h1 });
+            ref_h2_arr.push({ x: t_, y: ref_h2 });
             zero.push({ x: t_, y: 0 });
 
             // Update plot
@@ -151,6 +157,29 @@ $(document).ready(function () {
             }
 
         }
+    })
+
+    update_users = function(usrs){
+        $('#users').html("<ul></ul>")
+        console.log("Updating users")
+        for (var user of usrs) {
+            $('#users').append("<li>" + user + "</li>")
+        }
+    }
+
+    // Get state from server
+    socket.on('system-state', function(msg){
+        msg = JSON.parse(msg);
+        update_users(msg.users);
+        $("#h1-reference").val(msg.params.h1_ref); ref_h1 = msg.params.h1_ref;
+        $("#h2-reference").val(msg.params.h2_ref); ref_h2 = msg.params.h2_ref;
+        $("#gamma1").val(msg.params.g1);
+        $("#gamma2").val(msg.params.g2);
+        $("#Kp-gain").val(msg.params.Kp);
+        $("#Ki-gain").val(msg.params.Ki);
+        $("#Kd-gain").val(msg.params.Kd);
+        $("#pid-on").prop("checked", msg.params.pid_on);
+        $("#antiwindup-on").prop("checked", msg.params.antiwindup);
     })
 
     // Send all inputs to server
@@ -171,6 +200,8 @@ $(document).ready(function () {
             // Cast to float
             value = parseFloat($(this).val());
         }
+        if(isNaN(value)) return;
+
         var data = {id:$(this).attr('id'), val:value}
         console.log(data)
         socket.emit("user-input", data)
@@ -222,6 +253,13 @@ for (var [variable, dat] of Object.entries(plots)) {
             lineWidth: 3,
             xRange: { min: 0, max: T_SIZE },
         });
+
+        if(variable == "h1"){
+            plot.options.series.push({name: "Reference", color:"#000000", lineWidth: 1, data: ref_h1_arr});
+        }else if (variable == "h2"){
+            plot.options.series.push({name: "Reference", color:"#000000", lineWidth: 1, data: ref_h2_arr});
+        }
+
     // Store plot handle in database
     plots[variable].plot = plot;
 }

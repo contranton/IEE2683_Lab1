@@ -2,6 +2,7 @@ from opcua import Client
 from opcua import ua
 
 from threading import Thread, Event
+from time import sleep
 
 from pid import PID
 
@@ -40,10 +41,11 @@ class Controller():
         self.root_node = self.client.get_objects_node().get_child("2:Proceso_Tanques")
 
         self.pid_on = False
-        self.pid_semaphore = Event()
+        self.pid_starter = Event()
         self.pid_v1 = PID()
         self.pid_v2 = PID()
-        self.pid_thread = Thread(target=self.pid_thread, args=(self.pid_semaphore,))
+        self.pid_thread = Thread(target=self.run_pid, args=((lambda: self.pid_on), self.pid_starter))
+        self.pid_thread.start()
 
     def close(self):
         self.client.disconnect()
@@ -51,30 +53,100 @@ class Controller():
     #######################
     # PID Interface
 
+    @property
+    def Kp(self):
+        return self.pid_v1.Kp
+
+    @property
+    def Kd(self):
+        return self.pid_v1.Kd
+
+    @property
+    def Ki(self):
+        return self.pid_v1._Ki
+
+    @property
+    def antiwindup_on(self):
+        return self.pid_v1.antiwindup_on
+
+    @property
+    def ref_h1(self):
+        return self.pid_v1.reference
+
+    @property
+    def ref_h2(self):
+        return self.pid_v2.reference
+
     def set_reference(self, h1=None, h2=None):
         if h1 is not None:
             self.pid_v1.set_reference(h1)
         if h2 is not None:
-            self.pid_v2.set_reference(h1)
+            self.pid_v2.set_reference(h2)
 
-    def activate_pid(self):
-        self.pid_on = True
+    def set_h1_ref(self, h1):
+        if h1 is None:
+            h1 = 0
+        self.set_reference(h1=h1)
+
+    def set_h2_ref(self, h2):
+        if h2 is None:
+            h2 = 0
+        self.set_reference(h2=h2)
+
+    def activate_pid(self, value):
+        if value:
+            print("PID Activated")
+            self.pid_starter.set()
+        else:
+            print("PID deactivated")
+        self.pid_on = value
     
     def set_Ki(self, value):
+        if value is None:
+            value = 0
         self.pid_v1.set_Ki(value)
         self.pid_v2.set_Ki(value)
 
     def set_Kd(self, value):
+        if value is None:
+            value = 0
         self.pid_v1.set_Kd(value)
         self.pid_v2.set_Kd(value)
 
     def set_Kp(self, value):
+        if value is None:
+            value = 0
         self.pid_v1.set_Kp(value)
         self.pid_v2.set_Kp(value)
 
-    def activate_windup(self, value):
-        self.pid_v1.activate_windup(value)
-        self.pid_v2.activate_windup(value)
+    def activate_antiwindup(self, value):
+        if value is None:
+            value = False
+        self.pid_v1.activate_antiwindup(value)
+        self.pid_v2.activate_antiwindup(value)
+
+    #######################
+    # Ratios
+
+    @property
+    def gammas(self):
+        return self.root_node.get_child("2:Razones")
+
+    @property
+    def gammas_vals(self):
+        return {i: self.gammas.get_child([f"2:Razon{i}", "2:gamma"]).get_value() for i in (1, 2)}
+
+    def set_gammas(self, g1=None, g2=None):
+        if g1 is not None:
+            self.gammas.get_child(["2:Razon1", "2:gamma"]).set_value(g1)
+        if g2 is not None:
+            self.gammas.get_child(["2:Razon2", "2:gamma"]).set_value(g2)
+
+    def set_gamma1(self, g1):
+        self.set_gammas(g1=g1)
+
+    def set_gamma2(self, g2):
+        self.set_gammas(g2=g2)    
 
     ########################
     # Heights
@@ -171,21 +243,23 @@ class Controller():
     ######################
     # PID worker (attention: threaded!)
 
-    def pid_thread(self, event):
+    def run_pid(self, pid_on, event):
         while True:
-            if not self.pid_on:
-                event.wait()
-                continue
-            v1 = self.pid_v1.output
-            v2 = self.pid_v2.output
-            self.set_voltages(v1=v1, v2=v2)
+            event.wait()
+            event.clear()
+            while pid_on():
+                h1, h2, h3, h4 = self.heights_vals.values()
+
+                self.pid_v1.add_sample(h1)
+                self.pid_v2.add_sample(h2)
+
+                v1 = self.pid_v1.output
+                v2 = self.pid_v2.output
+
+                self.set_voltages(v1=v1, v2=v2)
 
     #######################
     # Miscellaneous
-
-    @property
-    def gammas(self):
-        return self.root_node.get_child("2:Razones")
 
     @property
     def time(self):

@@ -29,7 +29,8 @@ def event_stream(lock, do_stop):
             h = control.heights_vals
             v = control.voltages_vals
             t = control.timestamp
-        except:
+        except Exception as e:
+            print(e)
             print(" * [DBG] Shutting down data collection worker\n\n")
             return
 
@@ -132,7 +133,7 @@ def login():
 @socketio.on('client_connect', namespace='/dashboard')
 def update_users_on_connect():
     print((current_user.get_id() or "") + " logged in")
-    emit('server_userlist', {'data': json.dumps(User.get_user_list())},broadcast=True)
+    broadcast_state()
     try:
         emit('server_user-login', {'data': dict(can_control=(User.editor==""), editor=User.editor)})
     except AttributeError:
@@ -149,8 +150,26 @@ def update_users_on_disconnect():
         User.editor = ""
         emit("server_enable-ctrl", broadcast=True)
     logout_user()
-    emit('server_userlist', {'data': json.dumps(User.get_user_list())}, broadcast=True)
+    broadcast_state()
     redirect(url_for('login'))
+
+def broadcast_state():
+    data = {
+        'users': User.get_user_list(),
+        'params': {
+            'g1': control.gammas_vals[1],
+            'g2': control.gammas_vals[2],
+            'h1_ref': control.ref_h1,
+            'h2_ref': control.ref_h2,
+            'Kp': control.Kp,
+            'Ki': control.Ki,
+            'Kd': control.Kd,
+            'pid_on': control.pid_on,
+            'antiwindup': control.antiwindup_on
+        }
+    }
+    emit('system-state', json.dumps(data), broadcast=True)
+    
 
 @socketio.on('disconnect', namespace="/dashboard")
 def kick_users_on_disconnect():
@@ -180,11 +199,14 @@ functions = {
     "voltage2-slider":          control.set_voltage2,
     "voltage2-zero":            control.set_voltage2,
     "pid-on":                   control.activate_pid,
+    "h1-reference":             control.set_h1_ref,
+    "h2-reference":             control.set_h2_ref,
     "Kp-gain":                  control.set_Kp,
     "Kd-gain":                  control.set_Kd,
     "Ki-gain":                  control.set_Ki,
+    "gamma1":                   control.set_gamma1,
+    "gamma2":                   control.set_gamma2,
     "antiwindup-on":            control.activate_antiwindup,
-    "antiwindup-gain":          control.antiwindup_gain,
     "refresh-rate":             lambda x: None
 }
 
@@ -205,11 +227,12 @@ def change_control():
 def parse_input(msg):
         input_id = msg["id"]
         input_val = msg["val"]
-        # print(f"{current_user.get_id()} sent {input_id}:{input_val}({type(input_val).__name__})")
+        print(f"{current_user.get_id()} sent {input_id}:{input_val}({type(input_val).__name__})")
         if type(input_val) is str:
             raise Exception("Received a stringed value. Must be numeric!")
         try:
             functions[input_id](input_val)
+            broadcast_state()
         except KeyError as e:
             print(f"No function associated with {input_id}")
             print(e)

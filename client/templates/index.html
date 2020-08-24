@@ -34,6 +34,25 @@
                 <h2>Usuarios Conectados:</h2>
                 <ul id="users"></ul>
             </div>
+
+            <!-- Plant parameters -->
+
+            <div id="params-div">
+                <table style="width:100%">
+                    <tr>
+                        <th class="th-bottom-divider" colspan="2">Parametros del sistema</th>
+                    </tr>
+                    <tr>
+                        <th class="left">Gamma 1</th>
+                        <th class="right"><input class="fit" type="number" id="gamma1" name="g1" value="0.4", min="0", max="1"></th>
+                    </tr>
+                    <tr>
+                        <th class="left">Gamma 2</th>
+                        <th class="right"><input class="fit" type="number" id="gamma2" name="g2" value="0.4", min="0", max="1"></th>
+                    </tr>
+                </table>
+            </div>
+
             <h1>Controlador</h1>
             <input type="submit" style="width:100%;" value="Control Manual" id="ctrl-mode">
 
@@ -67,6 +86,14 @@
                     <tr>
                         <th class="left">Activar PID</th>
                         <th class="right"><input type="checkbox" name="pid-on" id="pid-on"><br></th>
+                    </tr>
+                    <tr>
+                        <th class="left">Referencia H1</th>
+                        <th class="right"><input class="fit" type="number" id="h1-reference" name="H1" value="40.0"></th>
+                    </tr>
+                    <tr>
+                        <th class="left">Referencia H2</th>
+                        <th class="right"><input class="fit" type="number" id="h2-reference" name="H2" value="40.0"></th>
                     </tr>
                     <tr>
                         <th class="left">Kp</th>
