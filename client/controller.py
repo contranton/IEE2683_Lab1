@@ -1,6 +1,8 @@
 from opcua import Client
 from opcua import ua
 
+from threading import Thread, Event
+
 from pid import PID
 
 # client = Client()
@@ -37,7 +39,9 @@ class Controller():
         self.client.connect()
         self.root_node = self.client.get_objects_node().get_child("2:Proceso_Tanques")
 
-        self.pid = PID()
+        self.pid_v1_semaphore = Event()
+        self.pid_v1 = PID()
+        self.pid_v1_thread = Thread(target=self.run)
 
         # Direct interface to the PID
         self.activate_pid = self.pid.activate_pid
@@ -141,6 +145,20 @@ class Controller():
 
     def set_voltage2(self, v2):
         self.set_voltages(v2=v2)
+
+    ######################
+    # PID (attention: threaded!)
+
+    def pid_thread(self):
+        while True:
+            
+            yield self.pid.control
+
+    def start_pid(self, pid):
+        self.pid_v1
+    
+    def stop_pid(self, pid):
+        handler.stop()
 
     #######################
     # Miscellaneous
