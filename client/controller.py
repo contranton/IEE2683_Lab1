@@ -39,20 +39,42 @@ class Controller():
         self.client.connect()
         self.root_node = self.client.get_objects_node().get_child("2:Proceso_Tanques")
 
-        self.pid_v1_semaphore = Event()
+        self.pid_on = False
+        self.pid_semaphore = Event()
         self.pid_v1 = PID()
-        self.pid_v1_thread = Thread(target=self.run)
-
-        # Direct interface to the PID
-        self.activate_pid = self.pid.activate_pid
-        self.set_Ki = self.pid.set_Ki
-        self.set_Kd = self.pid.set_Kd
-        self.set_Kp = self.pid.set_Kp
-        self.activate_antiwindup = self.pid.activate_antiwindup
-        self.antiwindup_gain = self.pid.antiwindup_gain
+        self.pid_v2 = PID()
+        self.pid_thread = Thread(target=self.pid_thread, args=(self.pid_semaphore,))
 
     def close(self):
         self.client.disconnect()
+
+    #######################
+    # PID Interface
+
+    def set_reference(self, h1=None, h2=None):
+        if h1 is not None:
+            self.pid_v1.set_reference(h1)
+        if h2 is not None:
+            self.pid_v2.set_reference(h1)
+
+    def activate_pid(self):
+        self.pid_on = True
+    
+    def set_Ki(self, value):
+        self.pid_v1.set_Ki(value)
+        self.pid_v2.set_Ki(value)
+
+    def set_Kd(self, value):
+        self.pid_v1.set_Kd(value)
+        self.pid_v2.set_Kd(value)
+
+    def set_Kp(self, value):
+        self.pid_v1.set_Kp(value)
+        self.pid_v2.set_Kp(value)
+
+    def activate_windup(self, value):
+        self.pid_v1.activate_windup(value)
+        self.pid_v2.activate_windup(value)
 
     ########################
     # Heights
@@ -147,18 +169,16 @@ class Controller():
         self.set_voltages(v2=v2)
 
     ######################
-    # PID (attention: threaded!)
+    # PID worker (attention: threaded!)
 
-    def pid_thread(self):
+    def pid_thread(self, event):
         while True:
-            
-            yield self.pid.control
-
-    def start_pid(self, pid):
-        self.pid_v1
-    
-    def stop_pid(self, pid):
-        handler.stop()
+            if not self.pid_on:
+                event.wait()
+                continue
+            v1 = self.pid_v1.output
+            v2 = self.pid_v2.output
+            self.set_voltages(v1=v1, v2=v2)
 
     #######################
     # Miscellaneous
