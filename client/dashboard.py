@@ -16,8 +16,8 @@ from flask_login import LoginManager, login_required, UserMixin, login_user, log
 
 from threading import Thread, Lock
 
-from controller import Controller
-global control
+from controller import get_controller
+control = get_controller("opc.tcp://localhost:4840/freeopcua/server/")
 
 #####################################
 # Data source
@@ -174,6 +174,20 @@ def attempt_remove_user(id):
 #########################################
 # Response management
 
+functions = {
+    "voltage1-slider":          control.set_voltage1,
+    "voltage1-zero":            control.set_voltage1,
+    "voltage2-slider":          control.set_voltage2,
+    "voltage2-zero":            control.set_voltage2,
+    "pid-on":                   control.activate_pid,
+    "Kp-gain":                  control.set_Kp,
+    "Kd-gain":                  control.set_Kd,
+    "Ki-gain":                  control.set_Ki,
+    "antiwindup-on":            control.activate_antiwindup,
+    "antiwindup-gain":          control.antiwindup_gain,
+    "refresh-rate":             lambda x: None
+}
+
 @socketio.on('ctrl-mode', namespace='/dashboard')
 def change_control():
     if(current_user.has_control):
@@ -187,17 +201,19 @@ def change_control():
         emit('server_user-begin-ctrl')
         emit('server_disable-ctrl', data=User.editor, broadcast=True, include_self=False)
 
-@socketio.on('client_set-voltage1', namespace='/dashboard')
-def set_voltage1(value):
-    if (type(value) is not float) and (type(value) is not int):
-        return
-    control.set_voltages(v1=value)
+@socketio.on('user-input', namespace="/dashboard")
+def parse_input(msg):
+        input_id = msg["id"]
+        input_val = msg["val"]
+        # print(f"{current_user.get_id()} sent {input_id}:{input_val}({type(input_val).__name__})")
+        if type(input_val) is str:
+            raise Exception("Received a stringed value. Must be numeric!")
+        try:
+            functions[input_id](input_val)
+        except KeyError as e:
+            print(f"No function associated with {input_id}")
+            print(e)
 
-@socketio.on('client_set-voltage2', namespace='/dashboard')
-def set_voltage2(value):
-    if type(value) is not float and (type(value) is not int):
-        return
-    control.set_voltages(v2=value)
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
@@ -206,9 +222,6 @@ def unauthorized_handler():
 ###########################################
 
 if __name__ == '__main__':
-    global control
-    control = Controller("opc.tcp://localhost:4840/freeopcua/server/")
-
     lock = Lock()
     stop_thread = False
     p = Thread(target=event_stream, args=(lock, lambda: stop_thread))

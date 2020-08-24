@@ -39,6 +39,14 @@ class Controller():
 
         self.pid = PID()
 
+        # Direct interface to the PID
+        self.activate_pid = self.pid.activate_pid
+        self.set_Ki = self.pid.set_Ki
+        self.set_Kd = self.pid.set_Kd
+        self.set_Kp = self.pid.set_Kp
+        self.activate_antiwindup = self.pid.activate_antiwindup
+        self.antiwindup_gain = self.pid.antiwindup_gain
+
     def close(self):
         self.client.disconnect()
 
@@ -128,6 +136,12 @@ class Controller():
         if v2 is not None:
             voltage_nodes[2].set_value(v2)
 
+    def set_voltage1(self, v1):
+        self.set_voltages(v1=v1)
+
+    def set_voltage2(self, v2):
+        self.set_voltages(v2=v2)
+
     #######################
     # Miscellaneous
 
@@ -181,6 +195,9 @@ def explore(node):
             depth += 1
             explore(child)
             depth -= 1
+
+def get_controller(url):
+    return Controller(url)
 
 if __name__ == "__main__":
     c = Controller("opc.tcp://localhost:4840/freeopcua/server/")

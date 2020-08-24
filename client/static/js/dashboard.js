@@ -37,6 +37,7 @@ plots = {
 var ID = 0;
 var socket;
 var username;
+var is_controling = false;
 
 $(document).ready(function () {
     socket = io("http://" + document.domain + ":" + location.port + "/dashboard");
@@ -83,6 +84,7 @@ $(document).ready(function () {
     socket.on('server_user-begin-ctrl', function(){
         $("#pid-div").hide();
         $("#ctrl-div").show();
+        is_controling = true;
         window._oldbtntext = $("#ctrl-mode").prop('value');
         $("#ctrl-mode").prop('value', "Finalizar");
 
@@ -96,6 +98,7 @@ $(document).ready(function () {
     })
 
     socket.on('server_user-end-ctrl', function(){
+        is_controling = false;
         $("#ctrl-div").hide();
         $("#pid-div").show();
         $("#ctrl-mode").prop('value', window._oldbtntext);
@@ -104,24 +107,20 @@ $(document).ready(function () {
     // Control actions
     $("#voltage1-slider").on('input', function (){
         $("#voltage1-text").attr('value', $(this).val());
-        socket.emit('client_set-voltage1', parseFloat($(this).val()));
     })
 
     $("#voltage2-slider").on('input', function (){
         $("#voltage2-text").attr('value', $(this).val());
-        socket.emit('client_set-voltage2', parseFloat($(this).val()));
     })
 
     $("#voltage1-zero").click(function(){
         $("#voltage1-text").attr('value', 0);
         $("#voltage1-slider").val(0);
-        socket.emit('client_set-voltage1', parseFloat("0.0"));
     })
 
     $("#voltage2-zero").click(function(){
         $("#voltage2-text").attr('value', 0);
         $("#voltage2-slider").val(0);
-        socket.emit('client_set-voltage2', parseFloat("0.0"));
     })
 
     // Server-pushed data
@@ -154,7 +153,34 @@ $(document).ready(function () {
         }
     })
 
-    // Button callbacks
+    // Send all inputs to server
+    // TODO: Dual of this function but with data sent by the server
+    var foo = function(){
+        var value;
+
+        if($(this).is(":checkbox")){
+            // Cast to boolean
+            value = $(this).is(":checked");
+        }else if($(this).is("select")){
+            // Get string value
+            value = $(this).val();
+        }else if($(this).is(":button")){
+            // Voltage buttons are always to set voltage 0
+            if($(this).attr("id").includes("voltage")) {value = 0};
+        }else{
+            // Cast to float
+            value = parseFloat($(this).val());
+        }
+        var data = {id:$(this).attr('id'), val:value}
+        console.log(data)
+        socket.emit("user-input", data)
+    };
+
+    // Assign to ALL DEM INPUTS
+    $("input").on('input', foo);
+    $("input:button").on('click', foo);
+    $("select").on('change', foo);
+
     $("#ctrl-mode").click(function () {
         socket.emit('ctrl-mode');
         $("#control-ui").show();

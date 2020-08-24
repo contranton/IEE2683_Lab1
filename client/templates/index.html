@@ -43,13 +43,13 @@
                     <tr><th class="th-bottom-divider" colspan="3">Voltaje 1</th></tr>
                     <tr>
                         <br>
-                        <th><input type="button" value="Cero" id="voltage1-zero"></th>
+                        <th><input type="button" name="v1-zero" value="Cero" id="voltage1-zero"></th>
                         <th><input type="range" id="voltage1-slider" , min=-1 max=1 step=0.01></th>
                         <th><input type="text" name="v1" id="voltage1-text"></th>
                     </tr>
                     <tr><th class="th-bottom-divider" colspan="3">Voltaje 2</th></tr>
                     <tr>
-                        <th><input type="button" value="Cero" id="voltage2-zero"></th>
+                        <th><input type="button" name="v2-zero" value="Cero" id="voltage2-zero"></th>
                         <th><input type="range" id="voltage2-slider" , min=-1 max=1 step=0.01></th>
                         <th><input type="text" name="v2" id="voltage2-text"></th>
                     </tr>
@@ -87,12 +87,12 @@
                     </tr>
                     <tr>
                         <th class="left">Activar</th>
-                        <th class="right"><input type="checkbox" name="windup-on" id="anti-windup-on"></th>
+                        <th class="right"><input type="checkbox" name="windup-on" id="antiwindup-on"></th>
                     </tr>
 
                     <tr>
                         <th class="left">Valor</th>
-                        <th class="right"><input type="number" id="anti-windup-gain" name="Ki-windup" value="0.0"></th>
+                        <th class="right"><input type="number" id="antiwindup-gain" name="Ki-windup" value="0.0"></th>
                     </tr>
 
                 </table>
