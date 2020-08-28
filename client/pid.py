@@ -1,4 +1,5 @@
 from collections import deque
+from time import time, sleep
 import numpy as np
 
 # TODO: Implement using only ndarrays
@@ -20,9 +21,14 @@ class PID:
        least a zero crossing has happened, triggering the previous condition.
 
     """
-    def __init__(self):
+    def __init__(self, id):
+        self.id = id
+
         # PID Parameters
         self.reference = 0
+
+        self.Ts = 1 # Sample time
+        self.last_time = 0
         
         self._Ki = 1
         self.Kd = 0
@@ -48,6 +54,8 @@ class PID:
     def output(self):
         """Returns calculated control signal with PID control
 
+        It ensures that the sample time is relatively stable
+
         For the different PID term it uses:
         - Error for the proportional term
         - Filtered Error for the derivative term
@@ -56,7 +64,18 @@ class PID:
         Returns:
             double: PID control signal
         """
-        print(f"reference: {self.reference}, latest: {self.window[-1]}")
+
+        # Wait for sample time if necessary
+        new_time = time()
+        delta = new_time - self.last_time
+
+        if delta < self.Ts:
+            sleep(self.Ts - delta)
+        
+        print(f"[PID{self.id}] {time() - self.last_time:.2f}")
+        self.last_time = new_time
+
+        # Calculate error
         u = self.Kp*self.error + self.Ki*self.integral + self.Kd*self.filtered_error
         return np.clip(u, -self.magnitude_saturation, self.magnitude_saturation)
 
