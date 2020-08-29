@@ -10,6 +10,9 @@ a = [a1 a2 a3 a4];
 k1 = 3.33; k2 = 3.33;
 g = 981;
 
+% ????
+kc = 1;
+
 gamma1 = 0.4;
 gamma2 = 0.2;
 
@@ -32,4 +35,34 @@ G(4,1) = (1-gamma1)*k1/A4;
 
 %% Is the linearized system controllable?
 unco = length(A) - rank(ctrb(F, G));
-unco == 0
+if unco == 0; fprintf("Controllable\n"); end
+
+%% Transfer function
+s = tf('s');
+
+c1 = T(1)*k1*kc/A1;
+c2 = T(2)*k2*kc/A2;
+
+H11 = gamma1*c1/(1+s*T(1));
+H12 = (1-gamma2)*c1/(1+s*T(1))/(1+s*T(3));
+H21 = (1-gamma1)*c2/(1+s*T(4))/(1+s*T(2));
+H22 = gamma2*c2/(1+s*T(2));
+
+H = [H11 H12 H21 H22];
+
+%% Analyze rlocus with different sample times
+figure
+p1 = subplot(2, 2, 1);
+p2 = subplot(2, 2, 2);
+p3 = subplot(2, 2, 3);
+p4 = subplot(2, 2, 4);
+hold on
+for i=-4:0.5:10
+    Ts = 10^i;
+    fprintf("Sample time %d\n", Ts);
+    subplot(p1); hold on; rlocus(c2d(H11, Ts, 'zoh')); title H11;
+    subplot(p2); hold on; rlocus(c2d(H12, Ts, 'zoh')); title H12;
+    subplot(p3); hold on; rlocus(c2d(H21, Ts, 'zoh')); title H21;
+    subplot(p4); hold on; rlocus(c2d(H22, Ts, 'zoh')); title H22;
+end
+hold off;
