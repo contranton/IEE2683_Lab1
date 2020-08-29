@@ -29,6 +29,7 @@ def event_stream(lock, do_stop):
             h = control.heights_vals
             v = control.voltages_vals
             t = control.timestamp
+            a = control.alarms
         except Exception as e:
             print(e)
             print(" * [DBG] Shutting down data collection worker\n\n")
@@ -36,7 +37,8 @@ def event_stream(lock, do_stop):
 
         d = dict(t=t,
                  data=dict(h1=h[1], h2=h[2], h3=h[3], h4=h[4],
-                           v1=v[1], v2=v[2]))
+                           v1=v[1], v2=v[2]),
+                 alarms=a)
         with lock:
             socketio.emit('server_push', {'data': d}, broadcast=True, namespace='/dashboard')
 

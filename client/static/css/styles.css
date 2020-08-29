@@ -107,14 +107,14 @@ ul{
 
 .alarm{
     margin: 10px;
-    padding: 20px;
+    padding: 10px;
 }
 
-.alarm.good{
+.alarm[state=good]{
     background-color: #9f9;
 }
 
-.alarm.bad{
+.alarm[state=bad]{
     background-color: #f55;
 }
 

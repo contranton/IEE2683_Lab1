@@ -146,13 +146,14 @@ $(document).ready(function () {
     })
 
 
-
+    // Handle data stream from the server
     var n_redraw = {};
     socket.on('server_push', function (msg) {
         var dat = msg.data
-        // For each variable
+
+        // Plot variables
         for (const [variable, value] of Object.entries(dat.data)) {
-            // Update data
+            // Update data_store
             var t_ = performance.now() - T_SIZE;
             data_store[variable].push({ x: t_, y: value });
             ref_h1_arr.push({ x: t_, y: ref_h1 });
@@ -166,6 +167,18 @@ $(document).ready(function () {
                 n_redraw[variable] = 0;
             }
 
+        }
+
+        // Set alarms
+        for (var [tank, state] of Object.entries(dat.alarms)){
+            tank = "#" + tank;
+            if(state.on){
+                $("#alarm-container").find(tank).attr("state", "bad");
+                $("#alarm-container").find(tank).find("h3").text("h < 10cm!!");
+            }else{
+                $("#alarm-container").find(tank).attr("state", "good");
+                $("#alarm-container").find(tank).find("h3").text("Altura bien");
+            }
         }
     })
 
@@ -190,16 +203,7 @@ $(document).ready(function () {
         $("#Kd-gain").val(msg.params.Kd);
         $("#pid-on").prop("checked", msg.params.pid_on);
         $("#antiwindup-on").prop("checked", msg.params.antiwindup);
-        //manage_alarms(msg.alarms)
     })
-
-    var manage_alarms = function(alarms){
-        for(alarm of alarms){
-            if(alarm.active){
-                $("#alarms.")
-            }
-        }
-    }
 
     // Send all inputs to server
     // TODO: Dual of this function but with data sent by the server

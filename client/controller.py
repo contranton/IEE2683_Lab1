@@ -66,8 +66,15 @@ class Controller():
         self.pid_thread = Thread(target=self.run_pid, args=((lambda: self.pid_on), self.pid_starter))
         self.pid_thread.start()
 
+        # Alarms state
+        self.alarms = {"1": {"on": False, "val": 0},
+                       "2": {"on": False, "val": 0},
+                       "3": {"on": False, "val": 0},
+                       "4": {"on": False, "val": 0}}
+        self.alarm_timers = {"1": None, "2": None, "3": None, "4": None}
+
         # Alarm handler
-        sub = self.client.create_subscription(100, AlarmHandler(self))
+        sub = self.client.create_subscription(10, AlarmHandler(self))
         sub.subscribe_events(self.root_node.get_child(["2:Alarmas", "2:Alarma_nivel"]))
 
 
@@ -268,8 +275,20 @@ class Controller():
     # Alarm
 
     def blink_alarm(self, id, val):
-        print(f"BLINKING ALARM {id} DUE TO {val}")
-        pass
+
+        # Cancel previous timers
+        if self.alarm_timers[id]:
+            self.alarm_timers[id].cancel()
+
+        # Set state and start new timer to reset state
+        self.alarms[id] = {"on": True, "val":val}
+        timer = Timer(2, self.__reset_alarm, (id, ))
+        self.alarm_timers[id] = timer
+        timer.start()
+
+
+    def __reset_alarm(self, id):
+        self.alarms[id] = {"on": False, "val":0}
 
     ######################
     # PID worker (attention: threaded!)
