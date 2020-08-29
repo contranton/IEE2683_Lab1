@@ -282,7 +282,7 @@ class Controller():
 
         # Set state and start new timer to reset state
         self.alarms[id] = {"on": True, "val":val}
-        timer = Timer(2, self.__reset_alarm, (id, ))
+        timer = Timer(5, self.__reset_alarm, (id, ))
         self.alarm_timers[id] = timer
         timer.start()
 

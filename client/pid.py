@@ -25,14 +25,14 @@ class PID:
         self.id = id
 
         # PID Parameters
-        self.reference = 0
+        self.reference = 20
 
         self.Ts = 0.1 # Sample time
         self.last_time = 0
         
         self._Ki = 1
         self.Kd = 0
-        self.Kp = 0
+        self.Kp = 2
 
         self.antiwindup_on = False
 
