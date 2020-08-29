@@ -27,7 +27,7 @@ class PID:
         # PID Parameters
         self.reference = 0
 
-        self.Ts = 1 # Sample time
+        self.Ts = 0.1 # Sample time
         self.last_time = 0
         
         self._Ki = 1
@@ -71,8 +71,7 @@ class PID:
 
         if delta < self.Ts:
             sleep(self.Ts - delta)
-        
-        print(f"[PID{self.id}] {time() - self.last_time:.2f}")
+    
         self.last_time = new_time
 
         # Calculate error

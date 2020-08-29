@@ -128,6 +128,15 @@ $(document).ready(function () {
         $("#voltage2-slider").val(0);
     })
 
+    $("#dl-data").click(function(){
+        var hiddenElement = document.createElement('a');
+        var dat = JSON.stringify(data_store);
+        hiddenElement.href = 'data:attachment/text,' + encodeURI(dat);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = 'Data.json';
+        hiddenElement.click();
+    })
+
     $("#params-div").find("gamma").on('input', function(){
         if($(this).val() > $(this).attr('max')){
             $(this).val($(this).attr('max'))
@@ -135,6 +144,7 @@ $(document).ready(function () {
             $(this).val($(this).attr('min'))
         }
     })
+
 
 
     var n_redraw = {};
@@ -180,7 +190,16 @@ $(document).ready(function () {
         $("#Kd-gain").val(msg.params.Kd);
         $("#pid-on").prop("checked", msg.params.pid_on);
         $("#antiwindup-on").prop("checked", msg.params.antiwindup);
+        //manage_alarms(msg.alarms)
     })
+
+    var manage_alarms = function(alarms){
+        for(alarm of alarms){
+            if(alarm.active){
+                $("#alarms.")
+            }
+        }
+    }
 
     // Send all inputs to server
     // TODO: Dual of this function but with data sent by the server

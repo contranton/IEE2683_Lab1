@@ -87,17 +87,35 @@ th.right{
 }
 .col3:last-child {margin-right:0;  }
 
+
 h1 {
     text-align: center;
-    font-family: sans-serif;
     font-style: italic;
     color: gray;
+}
+
+h2{
+    text-align: center;
+    color: #333;
 }
 
 ul{
     font-family: sans-serif;
     color: blue;
     font-weight: bold;
+}
+
+.alarm{
+    margin: 10px;
+    padding: 20px;
+}
+
+.alarm.good{
+    background-color: #9f9;
+}
+
+.alarm.bad{
+    background-color: #f55;
 }
 
 /* help icon */

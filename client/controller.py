@@ -1,7 +1,7 @@
 from opcua import Client
 from opcua import ua
 
-from threading import Thread, Event
+from threading import Thread, Event, Timer
 from time import sleep
 
 from pid import PID
@@ -16,6 +16,23 @@ from pid import PID
 #     print(e)
 #     print('Cliente OPCUA no se ha conectado')
 #     client.disconnect()
+
+class AlarmHandler():
+    def __init__(self, ctr):
+        self.ctr = ctr
+
+    def event_notification(self, event):
+        # Event as defined in TanquesNamespace.py
+        # Get event text
+        _, name, val = event.Message.Text.split(":")
+        
+        # Get tank id (character following 'Tanque')
+        id = name.split("Tanque")[-1][0]
+        val = float(val)
+
+        # Run callback
+        self.ctr.blink_alarm(id, val)
+
 
 class Controller():
     """
@@ -36,16 +53,23 @@ class Controller():
 
     """
     def __init__(self, url):
+        # Client connection
         self.client = Client(url)
         self.client.connect()
         self.root_node = self.client.get_objects_node().get_child("2:Proceso_Tanques")
 
+        # PIDs
         self.pid_on = False
         self.pid_starter = Event()
-        self.pid_v1 = PID()
-        self.pid_v2 = PID()
+        self.pid_v1 = PID(1)
+        self.pid_v2 = PID(2)
         self.pid_thread = Thread(target=self.run_pid, args=((lambda: self.pid_on), self.pid_starter))
         self.pid_thread.start()
+
+        # Alarm handler
+        sub = self.client.create_subscription(100, AlarmHandler(self))
+        sub.subscribe_events(self.root_node.get_child(["2:Alarmas", "2:Alarma_nivel"]))
+
 
     def close(self):
         self.client.disconnect()
@@ -241,6 +265,13 @@ class Controller():
         self.set_voltages(v2=v2)
 
     ######################
+    # Alarm
+
+    def blink_alarm(self, id, val):
+        print(f"BLINKING ALARM {id} DUE TO {val}")
+        pass
+
+    ######################
     # PID worker (attention: threaded!)
 
     def run_pid(self, pid_on, event):
@@ -262,21 +293,16 @@ class Controller():
     # Miscellaneous
 
     @property
+    def time_node(self):
+        return self.client.get_objects_node().get_child(["0:Server", "0:ServerStatus", "0:CurrentTime"])
+
+    @property
     def time(self):
-        return self.client.get_objects_node().get_child(["0:Server", "0:ServerStatus", "0:CurrentTime"]).get_value()
+        return self.time_node.get_value()
 
     @property
     def timestamp(self):
         return self.time.timestamp()
-
-    ######################
-    # I/O
-
-    def write_data(self):
-        pass
-
-    def calculate_control(self):
-        pass
 
 
 ######################

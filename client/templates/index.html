@@ -129,6 +129,14 @@
             <h1>Voltajes</h1>
             <div class="row, chart" id="v1"></div>
             <div class="row, chart" id="v2"></div>
+
+            <h1>Alarmas</h1>
+            <div id="alarm-container" style="display: grid;grid-template-columns: auto auto;justify-content: space-evenly;">
+                <div class="alarm" id="alarm-h1">Tanque 1<div class="h-good" hidden>Altura bien</div><div class="h-bad" hidden>Altura &lt; 10m. !!</div></div>
+                <div class="alarm" id="alarm-h2">Tanque 2<div class="h-good" hidden>Altura bien</div><div class="h-bad" hidden>Altura &lt; 10m. !!</div></div>
+                <div class="alarm" id="alarm-h3">Tanque 3<div class="h-good" hidden>Altura bien</div><div class="h-bad" hidden>Altura &lt; 10m. !!</div></div>
+                <div class="alarm" id="alarm-h4">Tanque 4<div class="h-good" hidden>Altura bien</div><div class="h-bad" hidden>Altura &lt; 10m. !!</div></div>
+            </div>
         </div>
         <div class="col3">
             <h1>Alturas</h1>
@@ -143,7 +151,8 @@
             <h1>Column 1</h1>
         </div>
         <div class="col3">
-            <h1>Column 2</h1>
+            <h1>Descargas</h1>
+            <input type="button" style="width:100%;height:40px;" value="Descargar JSON" id="dl-data">
         </div>
         <div class="col3" style="height:min-content">
             <h3>Opciones</h3>

@@ -28,7 +28,7 @@
 
 # TODO:
 
-- Dashboard.py debe tener **una sola** función que broadcastee el estado del controlador
+- (DONE) Dashboard.py debe tener **una sola** función que broadcastee el estado del controlador
   - manual-ctrl-available: {true} o {false, "editor": NombreEditando}
   - Ganancias del PID
   - Quienes estan conectados
@@ -36,7 +36,8 @@
 - Refresh-rate visual debe basarse en segundos transcurridos y no el número de datos recibidos
   - El segundo varía muchísimo dependiendo del rendimiento del servidor
 
-- Alarmas
+
 - Entrada manual sinusoidal
+- Alarmas
+- Datos
 - Filtro para componente derivada del PID
- 
