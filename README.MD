@@ -28,18 +28,20 @@
 
 # TODO:
 
+## High priority
+- !! Datos
+  - Begin save, end save (client-sied)
+  - Extensiones
+- Filtro para componente derivada del PID
+- Entrada manual sinusoidal
+  
+  ## Low priority
+- Refresh-rate visual debe basarse en segundos transcurridos y no el número de datos recibidos
+  - El segundo varía muchísimo dependiendo del rendimiento del servidor
+
+## Done
 - (DONE) Dashboard.py debe tener **una sola** función que broadcastee el estado del controlador
   - manual-ctrl-available: {true} o {false, "editor": NombreEditando}
   - Ganancias del PID
   - Quienes estan conectados
 - (DONE) Alarmas
-
-- Refresh-rate visual debe basarse en segundos transcurridos y no el número de datos recibidos
-  - El segundo varía muchísimo dependiendo del rendimiento del servidor
-
-
-- !! Datos
-  - Begin save, end save (client-sied)
-  - Extensiones
-- Entrada manual sinusoidal
-- Filtro para componente derivada del PID
