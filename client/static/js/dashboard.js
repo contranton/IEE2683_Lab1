@@ -237,6 +237,7 @@ $(document).ready(function () {
     // TODO: Dual of this function but with data sent by the server
     var foo = function(){
         var value;
+        var id_ = $(this).attr('id');
 
         if($(this).is(":checkbox")){
             // Cast to boolean
@@ -250,13 +251,12 @@ $(document).ready(function () {
         }else{
             // Cast to float
             value = parseFloat($(this).val());
+            if(id_.contains("voltage")){
+                id_ = id_.slice(0, id_.indexOf("-"));
+            }
         }
         if(isNaN(value)) return;
 
-        var id_ = $(this).attr('id');
-        if(id_.contains("voltage")){
-            id_ = id_.slice(0, id_.indexOf("-"));
-        }
 
         var data = {id:id_, val:value}
         socket.emit("user-input", data)
