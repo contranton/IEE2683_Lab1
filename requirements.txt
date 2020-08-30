@@ -3,3 +3,4 @@ flask
 flask-socketio
 flask-login
 opcua
+numpy
