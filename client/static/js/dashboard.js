@@ -3,9 +3,6 @@
 // Horizontal size of the plot window
 var T_SIZE = 10000;
 
-//  How many new datapoints to receive until a redraw (helps performance)
-var DELAY_PER_REDRAW = 0;
-
 // Data arrays (independent from plotting) to be updated from live data
 // Need to be explicitly declared to work with TimeChart
 const zero = [];
@@ -43,6 +40,16 @@ var is_controling = false;
 
 var ref_h1 = 0;
 var ref_h2 = 0;
+
+// Pointers to the sine interval
+var sines = {};
+
+// on activate sine (setInterval?)
+sine = function(id, freq, amp, off){
+    // performance.now is in ms and we're measuring in s!
+    value = amp*Math.sin(2*Math.PI*freq*performance.now()/1000 + off);
+    socket.emit('user-input', {id: 'voltage' + id, val: value});
+}
 
 $(document).ready(function () {
     socket = io("http://" + document.domain + ":" + location.port + "/dashboard");
@@ -110,6 +117,42 @@ $(document).ready(function () {
     })
 
     // Control actions
+
+    $("#ctrl-mode").click(function () {
+        socket.emit('ctrl-mode');
+        $("#control-ui").show();
+    })
+
+    $("#tab-fixed").click(function(){
+        $("#ctrl-div").find("#ctrl-fixed").show();
+        $("#ctrl-div").find("#ctrl-sine").hide();
+    })
+
+    $("#tab-sine").click(function(){
+        $("#ctrl-div").find("#ctrl-fixed").hide();
+        $("#ctrl-div").find("#ctrl-sine").show();
+    })
+
+    $("[id*=sine-on]").click(function(){
+        id = $(this).attr('id').slice(0, 2); // v2-sine-on -> v2
+
+        // If sine already happening, stop it
+        if(sines[id] != null){
+            clearInterval(sines[id]);
+            $(this).attr('value', "Activar");
+            sines[id] = null;
+
+        // Else, start the sine
+        }else{
+            $(this).attr('value', "Stop");
+            freq =   parseFloat($("#" + id + "-sine-freq").val());
+            amp =    parseFloat($("#" + id + "-sine-amp").val());
+            offset = parseFloat($("#" + id + "-sine-offset").val());
+            send_freq = 10*freq; // Send samples at 5x the Nyquist frequency
+            sines[id] = setInterval(sine, send_freq, id[1], freq, amp, offset);
+        }
+    })
+
     $("#voltage1-slider").on('input', function (){
         $("#voltage1-text").attr('value', $(this).val());
     })
@@ -128,15 +171,6 @@ $(document).ready(function () {
         $("#voltage2-slider").val(0);
     })
 
-    $("#dl-data").click(function(){
-        var hiddenElement = document.createElement('a');
-        var dat = JSON.stringify(data_store);
-        hiddenElement.href = 'data:attachment/text,' + encodeURI(dat);
-        hiddenElement.target = '_blank';
-        hiddenElement.download = 'Data.json';
-        hiddenElement.click();
-    })
-
     $("#params-div").find("gamma").on('input', function(){
         if($(this).val() > $(this).attr('max')){
             $(this).val($(this).attr('max'))
@@ -145,9 +179,7 @@ $(document).ready(function () {
         }
     })
 
-
     // Handle data stream from the server
-    var n_redraw = {};
     socket.on('server_push', function (msg) {
         var dat = msg.data
 
@@ -161,16 +193,12 @@ $(document).ready(function () {
             zero.push({ x: t_, y: 0 });
 
             // Update plot
-            if(n_redraw[variable] === undefined){ n_redraw[variable] = 0;}
-            if(++n_redraw[variable] > DELAY_PER_REDRAW){
-                plots[variable].plot.update();
-                n_redraw[variable] = 0;
-            }
+            plots[variable].plot.update();
 
         }
 
         // Set alarms
-        for (var [tank, state] of Object.entries(dat.alarms)){
+        for (var [tank, state] of Object.entries(msg.alarms)){
             tank = "#" + tank;
             if(state.on){
                 $("#alarm-container").find(tank).attr("state", "bad");
@@ -225,30 +253,29 @@ $(document).ready(function () {
         }
         if(isNaN(value)) return;
 
-        var data = {id:$(this).attr('id'), val:value}
-        console.log(data)
+        var id_ = $(this).attr('id');
+        if(id_.contains("voltage")){
+            id_ = id_.slice(0, id_.indexOf("-"));
+        }
+
+        var data = {id:id_, val:value}
         socket.emit("user-input", data)
     };
 
     // Assign to ALL DEM INPUTS
-    $("input").on('input', foo);
-    $("input:button").on('click', foo);
-    $("select").on('change', foo);
-
-    $("#ctrl-mode").click(function () {
-        socket.emit('ctrl-mode');
-        $("#control-ui").show();
-    })
+    $("input:not([id*=sine])").on('input', foo);
+    $("input:button:not([id*=sine])").on('click', foo);
+    $("select:not([id*=sine])").on('change', foo);
 
     // Options
-    $("#refresh-rate").change(function(){
-        var choice = $(this).children("option:selected").val();
-        switch(choice){
-            case "fast": DELAY_PER_REDRAW = 0; break;
-            case "med":  DELAY_PER_REDRAW = 30; break;
-            case "slow": DELAY_PER_REDRAW = 120; break;
-        }
-    })
+    // $("#refresh-rate").change(function(){
+    //     var choice = $(this).children("option:selected").val();
+    //     switch(choice){
+    //         case "fast": DELAY_PER_REDRAW = 0; break;
+    //         case "med":  DELAY_PER_REDRAW = 3; break;
+    //         case "slow": DELAY_PER_REDRAW = 9; break;
+    //     }
+    // })
 })
 
 ///////////////////////////////////////////////////////////////////////////////////

@@ -87,7 +87,7 @@ class PID:
             value (double/float): New data point
         """
         self.window.append(value)
-        self.integral += self.error
+        self.integral += self.error*self.Ts
 
         # Reset integral term if zero-crossing
         sign = np.sign(self.error)
@@ -118,17 +118,14 @@ class PID:
 
     def set_Ki(self, value):
         """Set Integral Gain"""
-        print("Set PID Ki")
         self._Ki = value
 
     def set_Kd(self, value):
         """Set Derivative Gain"""
-        print("Set PID Kd")
         self.Kd = value
 
     def set_Kp(self, value):
         """Set Proportional Gain"""
-        print("Set PID Kp")
         self.Kp = value
 
     def set_filter_length(self, value):
@@ -147,7 +144,7 @@ class PID:
         Returns:
             double: the average of the samples in self.window
         """
-        return np.convolve(self.window, np.ones(self.N_filter)/self.N_filter, mode='valid')[0]
+        return np.convolve(self.window, self.Ts*np.ones(self.N_filter)/self.N_filter, mode='valid')[0]
 
     def activate_antiwindup(self, value):
         self.antiwindup_on = value

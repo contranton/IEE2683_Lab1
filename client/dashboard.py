@@ -3,24 +3,31 @@
 # https://flask-socketio.readthedocs.io/en/latest/
 # https://github.com/maxcountryman/flask-login
 
-from gevent import monkey
-monkey.patch_all()
+# from gevent import monkey
+# monkey.patch_all()
 
-DATA_INTERVAL = 1       # In ms.
+from eventlet import monkey_patch
+monkey_patch()
 
-import json, time, random
+DATA_INTERVAL = 10       # In ms.
 
-from flask import Flask, Response, render_template, url_for, request, redirect, make_response, session
-from flask_socketio import SocketIO, emit
+import json, time, random, pandas
+
+from flask import Flask, Response, render_template, url_for, request, redirect, make_response, session, send_file
+from flask_socketio import SocketIO, emit, disconnect
 from flask_login import LoginManager, login_required, UserMixin, login_user, logout_user, current_user
 
+from io import BytesIO
 from threading import Thread, Lock
+from collections import deque
 
 from controller import get_controller
 control = get_controller("opc.tcp://localhost:4840/freeopcua/server/")
 
 #####################################
-# Data source
+# Data source and storage
+data = deque(maxlen=100_000)
+
 def event_stream(lock, do_stop):
     while True:
         if do_stop(): break
@@ -37,10 +44,11 @@ def event_stream(lock, do_stop):
 
         d = dict(t=t,
                  data=dict(h1=h[1], h2=h[2], h3=h[3], h4=h[4],
-                           v1=v[1], v2=v[2]),
-                 alarms=a)
+                           v1=v[1], v2=v[2]))
+        d_ = dict(t=t, **d['data'])
+        data.append(d_)
         with lock:
-            socketio.emit('server_push', {'data': d}, broadcast=True, namespace='/dashboard')
+            socketio.emit('server_push', {'data': d, 'alarms': a}, broadcast=True, namespace='/dashboard')
 
 ########################################
 # User class (very basic, only for names and some basic state)
@@ -156,21 +164,25 @@ def update_users_on_disconnect():
     redirect(url_for('login'))
 
 def broadcast_state():
-    data = {
-        'users': User.get_user_list(),
-        'params': {
-            'g1': control.gammas_vals[1],
-            'g2': control.gammas_vals[2],
-            'h1_ref': control.ref_h1,
-            'h2_ref': control.ref_h2,
-            'Kp': control.Kp,
-            'Ki': control.Ki,
-            'Kd': control.Kd,
-            'pid_on': control.pid_on,
-            'antiwindup': control.antiwindup_on
+    try:
+        data = {
+            'users': User.get_user_list(),
+            'params': {
+                'g1': control.gammas_vals[1],
+                'g2': control.gammas_vals[2],
+                'h1_ref': control.ref_h1,
+                'h2_ref': control.ref_h2,
+                'Kp': control.Kp,
+                'Ki': control.Ki,
+                'Kd': control.Kd,
+                'pid_on': control.pid_on,
+                'antiwindup': control.antiwindup_on
+            }
         }
-    }
-    emit('system-state', json.dumps(data), broadcast=True)
+        emit('system-state', json.dumps(data), broadcast=True)
+    except OSError:
+        import pdb; pdb.set_trace()
+        print("Broadcast failed")
     
 
 @socketio.on('disconnect', namespace="/dashboard")
@@ -179,7 +191,7 @@ def kick_users_on_disconnect():
     redirect(url_for('login'))
 
 def attempt_remove_user(id):
-    print("Gonna kill " + str(id))
+    print("Gonna log out " + str(id))
     time.sleep(3)
     if id in User.usernames_for_logout:
         print("Cancelled logging out " + id)
@@ -196,10 +208,8 @@ def attempt_remove_user(id):
 # Response management
 
 functions = {
-    "voltage1-slider":          control.set_voltage1,
-    "voltage1-zero":            control.set_voltage1,
-    "voltage2-slider":          control.set_voltage2,
-    "voltage2-zero":            control.set_voltage2,
+    "voltage1":                 control.set_voltage1,
+    "voltage2":                 control.set_voltage2,
     "pid-on":                   control.activate_pid,
     "h1-reference":             control.set_h1_ref,
     "h2-reference":             control.set_h2_ref,
@@ -214,6 +224,7 @@ functions = {
 
 @socketio.on('ctrl-mode', namespace='/dashboard')
 def change_control():
+    control.activate_pid(False)
     if(current_user.has_control):
         current_user.has_control = False
         User.editor = ""
@@ -229,16 +240,40 @@ def change_control():
 def parse_input(msg):
         input_id = msg["id"]
         input_val = msg["val"]
-        print(f"{current_user.get_id()} sent {input_id}:{input_val}({type(input_val).__name__})")
+        #print(f"{current_user.get_id()} sent {input_id}:{input_val}({type(input_val).__name__})")
         if type(input_val) is str:
             raise Exception("Received a stringed value. Must be numeric!")
         try:
             functions[input_id](input_val)
-            broadcast_state()
+            if("voltage" not in input_id):
+                broadcast_state()
         except KeyError as e:
             print(f"No function associated with {input_id}")
             print(e)
 
+#########################################
+# Downloads
+
+@app.route("/download-JSON", methods=['POST', 'GET'])
+def download_json():
+    buffer = BytesIO()
+    buffer.write(bytes(pandas.DataFrame(data).to_json(), 'utf-8')); buffer.seek(0)
+    print(buffer.getvalue())
+    return send_file(buffer, as_attachment=True, attachment_filename="data.json", cache_timeout=0)
+
+@app.route("/download-CSV", methods=['POST', 'GET'])
+def download_csv():
+    buffer = BytesIO()
+    buffer.write(bytes(pandas.DataFrame(data).to_csv(), 'utf-8')); buffer.seek(0)
+    print(buffer.getvalue())
+    return send_file(buffer, as_attachment=True, attachment_filename="data.csv", cache_timeout=0)
+
+@app.route("/download-XLS", methods=['POST', 'GET'])
+def download_xls():
+    buffer = BytesIO()
+    buffer.write(bytes(pandas.DataFrame(data).to_excel(), 'utf-8')); buffer.seek(0)
+    print(buffer.getvalue())
+    return send_file(buffer, as_attachment=True, attachment_filename="data.xls", cache_timeout=0)
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():

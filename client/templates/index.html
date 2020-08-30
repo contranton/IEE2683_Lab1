@@ -58,10 +58,17 @@
 
             <!-- Manual Control Div -->
             <div id="ctrl-div" class="control" hidden>
-                <table>
+
+                <!-- Tabs -->
+                <div class="tab">
+                <button class="tablinks" id="tab-fixed">Voltaje Fijo</button>
+                <button class="tablinks" id="tab-sine">Sinusoide</button>
+                </div>
+
+                <!-- Fixed value -->
+                <table id="ctrl-fixed" hidden>
                     <tr><th class="th-bottom-divider" colspan="3">Voltaje 1</th></tr>
                     <tr>
-                        <br>
                         <th><input type="button" name="v1-zero" value="Cero" id="voltage1-zero"></th>
                         <th><input type="range" id="voltage1-slider" , min=-1 max=1 step=0.01></th>
                         <th><input type="text" name="v1" id="voltage1-text"></th>
@@ -71,6 +78,27 @@
                         <th><input type="button" name="v2-zero" value="Cero" id="voltage2-zero"></th>
                         <th><input type="range" id="voltage2-slider" , min=-1 max=1 step=0.01></th>
                         <th><input type="text" name="v2" id="voltage2-text"></th>
+                    </tr>
+                </table>
+
+                <!-- Sinusoid -->
+                <table id="ctrl-sine" hidden>
+                    <tr><th class="th-bottom-divider" colspan="4">Voltaje 1</th></tr>
+                    <tr><th></th><th>Amplitud</th><th>Desfase</th><th>Frecuencia</th></tr>
+                    <tr>
+                        <th><input type="button" id="v1-sine-on" value="Activar"></th>
+                        <th><input type="range" id="v1-sine-amp" min=-1 max=1 step=0.01 value=1></th>
+                        <th><input type="range" id="v1-sine-offset" min=-90 max=90 step=0.01 value=0></th>
+                        <th><input type="text"  id="v1-sine-freq" value=1></th>
+                    </tr>
+                    <tr><th class="th-bottom-divider" colspan="4">Voltaje 2</th></tr>
+                    <tr></tr>
+                    <tr><th></th><th>Amplitud</th><th>Desfase</th><th>Frecuencia</th></tr>
+                    <tr>
+                        <th><input type="button" id="v2-sine-on" value="Activar" ></th>
+                        <th><input type="range" id="v2-sine-amp" min=-1 max=1 step=0.01 value=1></th>
+                        <th><input type="range" id="v2-sine-offset" min=-90 max=90 step=0.01 value=0></th>
+                        <th><input type="text" id="v2-sine-freq" value=1></th>
                     </tr>
                 </table>
             </div>
@@ -130,7 +158,7 @@
             <div class="row, chart" id="v1"></div>
             <div class="row, chart" id="v2"></div>
 
-            <h1>Alarmas</h1>
+            <h1 style="margin-bottom:-10px">Alarmas</h1>
             <div id="alarm-container" style="display: grid;grid-template-columns: auto auto;justify-content: space-evenly;">
                 <div class="alarm" id="1" state="good">Tanque 1<h3></h3></div>
                 <div class="alarm" id="2" state="good">Tanque 2<h3></h3></div>
@@ -152,7 +180,17 @@
         </div>
         <div class="col3">
             <h1>Descargas</h1>
-            <input type="button" style="width:100%;height:40px;" value="Descargar JSON" id="dl-data">
+            <div id="dl-buttons"style="display: grid;grid-template-columns: auto auto auto;justify-content: space-evenly;" >
+                <form action="/download-JSON">
+                    <input type="submit" value="JSON">
+                </form>
+                <form action="/download-CSV">
+                    <input type="submit" value="CSV">
+                </form>
+                <form action="/download-XLS">
+                    <input type="submit" value="XLS">
+                </form>
+            </div>
         </div>
         <div class="col3" style="height:min-content">
             <h3>Opciones</h3>
@@ -164,8 +202,8 @@
             </label>
             <select name="refresh-rate" id="refresh-rate">
                 <option value="fast">Alta (tiempo real)</option>
-                <option value="med">Media (÷30)</option>
-                <option value="slow">Baja (÷120)</option>
+                <option value="med">Media (÷3)</option>
+                <option value="slow">Baja (÷9)</option>
             </select>
             <br>
             <!-- Color Scheme -->

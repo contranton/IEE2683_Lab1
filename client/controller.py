@@ -2,7 +2,6 @@ from opcua import Client
 from opcua import ua
 
 from threading import Thread, Event, Timer
-from time import sleep
 
 from pid import PID
 
@@ -57,6 +56,18 @@ class Controller():
         self.client = Client(url)
         self.client.connect()
         self.root_node = self.client.get_objects_node().get_child("2:Proceso_Tanques")
+
+        # Direct node references to speed up data acquisition (avoid so many get_child()s)
+        self.gammas_node = self.root_node.get_child("2:Razones")
+        self.gammas = {i: self.gammas_node.get_child([f"2:Razon{i}", "2:gamma"]) for i in (1, 2)}
+
+        self.tanks_node = self.root_node.get_child("2:Tanques")
+        self.heights = {i: self.tanks_node.get_child([f"2:Tanque{i}", "2:h"]) for i in (1,2,3,4)}
+
+        self.pumps_node = self.root_node.get_child("2:Valvulas")
+        self.voltages = {i: self.pumps_node.get_child([f"2:Valvula{i}", "2:u"]) for i in (1,2)}
+
+        self.time_node = self.client.get_objects_node().get_child(["0:Server", "0:ServerStatus", "0:CurrentTime"])
 
         # PIDs
         self.pid_on = False
@@ -160,18 +171,16 @@ class Controller():
     # Ratios
 
     @property
-    def gammas(self):
-        return self.root_node.get_child("2:Razones")
-
-    @property
     def gammas_vals(self):
-        return {i: self.gammas.get_child([f"2:Razon{i}", "2:gamma"]).get_value() for i in (1, 2)}
+        return {i: self.gammas[i].get_value() for i in (1, 2)}
 
     def set_gammas(self, g1=None, g2=None):
         if g1 is not None:
-            self.gammas.get_child(["2:Razon1", "2:gamma"]).set_value(g1)
+            g1 = max(0, min(g1, 1))
+            self.gammas[1].set_value(g1)
         if g2 is not None:
-            self.gammas.get_child(["2:Razon2", "2:gamma"]).set_value(g2)
+            g2 = max(0, min(g2, 1))
+            self.gammas[2].set_value(g2)
 
     def set_gamma1(self, g1):
         self.set_gammas(g1=g1)
@@ -183,34 +192,12 @@ class Controller():
     # Heights
 
     @property
-    def tanks(self):
-        """Nodo que contiene a los tanques
-
-        Returns:
-            opcua.common.node.Node: Nodo '2:Tanques'
-        """
-        return self.root_node.get_child("2:Tanques")
-
-    @property
-    def heights(self):
-        """Diccionario con el nodo correspondiente a la altura de cada tanque.
-        El índice es el número del tanque, sea 1, 2, 3 o 4
-
-        Returns:
-            dict[i -> int] -> opcua.common.node.Node: Nodo '2:h' de cada tanque i
-        """
-        return {i: self.tanks.get_child([f"2:Tanque{i}", "2:h"]) for i in (1,2,3,4)}
-
-    @property
     def heights_vals(self):
-        """Diccionario con todas las alturas con sus tiempos asociados
+        """Diccionario con todas las alturas
 
             dict[i -> int] -> float
         """
-        d = {}
-        for i, h in self.heights.items():
-            d[i] = h.get_value()
-        return d
+        return {i: self.heights[i].get_value() for i in (1,2,3,4)}
 
     @property
     def heights_timestamped(self):
@@ -219,32 +206,18 @@ class Controller():
         Returns:
             dict[i -> int] -> dict['val': float, 't': time.timestamp]: Datos para cada tanque
         """
-        d = {}
-        for i, h in self.heights.items():
-            d[i] = {"val": h.get_value(), "t": self.timestamp}
-        return d
+        return {{"val": h.get_value(), "t": self.timestamp} for h in self.heights.values()}
 
     ######################
     # Voltages
 
     @property
-    def pumps(self):
-        return self.root_node.get_child("2:Valvulas")
-
-    @property
-    def voltages(self):
-        return {i: self.pumps.get_child([f"2:Valvula{i}", "2:u"]) for i in (1,2)}
-
-    @property
     def voltages_vals(self):
-        """Diccionario con todos los voltajes
+        """Diccionario con todas las altura
 
-        dict[i -> int] -> float
+            dict[i -> int] -> float
         """
-        d = {}
-        for i, v in self.voltages.items():
-            d[i] = v.get_value()
-        return d
+        return {i: self.voltages[i].get_value() for i in (1,2)}
 
     @property
     def voltages_timestamped(self):
@@ -253,10 +226,7 @@ class Controller():
         Returns:
             dict[i -> int] -> dict['val': float, 't': time.timestamp]: Datos para cada bomba
         """
-        d = {}
-        for i, v in self.voltages.items():
-            d[i] = {"val": v.get_value(), "t": self.timestamp}
-        return d
+        return {{"val": v.get_value(), "t": self.timestamp} for v in self.voltages.values()}
 
     def set_voltages(self, v1=None, v2=None):
         voltage_nodes = self.voltages
@@ -312,16 +282,8 @@ class Controller():
     # Miscellaneous
 
     @property
-    def time_node(self):
-        return self.client.get_objects_node().get_child(["0:Server", "0:ServerStatus", "0:CurrentTime"])
-
-    @property
-    def time(self):
-        return self.time_node.get_value()
-
-    @property
     def timestamp(self):
-        return self.time.timestamp()
+        return self.time_node.get_value().timestamp()
 
 
 ######################
