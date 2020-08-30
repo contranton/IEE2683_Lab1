@@ -251,9 +251,11 @@ $(document).ready(function () {
         }else{
             // Cast to float
             value = parseFloat($(this).val());
-            if(id_.contains("voltage")){
-                id_ = id_.slice(0, id_.indexOf("-"));
-            }
+            try{
+                if(id_.contains("voltage")){
+                    id_ = id_.slice(0, id_.indexOf("-"));
+                }
+            }catch(error){}
         }
         if(isNaN(value)) return;
 

@@ -93,7 +93,8 @@ class PID:
         sign = np.sign(self.error)
         if sign != self.last_sign:
             self.last_sign = sign
-            self.integral = 0
+            if self.antiwindup_on:
+                self.integral = 0
 
     def set_reference(self, value):
         """Set reference point for error calculation"""
