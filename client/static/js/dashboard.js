@@ -1,7 +1,9 @@
-// TODO: Handle refreshing
+
 
 // Horizontal size of the plot window
-var T_SIZE = 100000;
+var T_SIZE = 10000;
+
+var DELAY_PER_REDRAW = 0;
 
 // Data arrays (independent from plotting) to be updated from live data
 // Need to be explicitly declared to work with TimeChart
@@ -192,6 +194,7 @@ $(document).ready(function () {
     })
 
     // Handle data stream from the server
+    var n_redraw = {};
     socket.on('server_push', function (msg) {
         var dat = msg.data
 
@@ -205,7 +208,11 @@ $(document).ready(function () {
             zero.push({ x: t_, y: 0 });
 
             // Update plot
-            plots[variable].plot.update();
+            if(n_redraw[variable] === undefined){ n_redraw[variable] = 0;}
+            if(++n_redraw[variable] > DELAY_PER_REDRAW){
+                plots[variable].plot.update();
+                n_redraw[variable] = 0;
+            }
 
         }
 
@@ -281,15 +288,22 @@ $(document).ready(function () {
     $("input:button:not([id*=sine])").on('click', foo);
     $("select:not([id*=sine])").on('change', foo);
 
-    // Options
-    // $("#refresh-rate").change(function(){
-    //     var choice = $(this).children("option:selected").val();
-    //     switch(choice){
-    //         case "fast": DELAY_PER_REDRAW = 0; break;
-    //         case "med":  DELAY_PER_REDRAW = 3; break;
-    //         case "slow": DELAY_PER_REDRAW = 9; break;
-    //     }
-    // })
+    //Options
+    $("#refresh-rate").change(function(){
+        var choice = $(this).children("option:selected").val();
+        switch(choice){
+            case "fast": DELAY_PER_REDRAW = 0; break;
+            case "med":  DELAY_PER_REDRAW = 10; break;
+            case "slow": DELAY_PER_REDRAW = 100; break;
+        }
+    })
+
+    $("#plot-window").change(function(){
+        T_SIZE = parseFloat($(this).val());
+        for(var dat of Object.values(plots)){
+            dat.plot.options.xRange.max = T_SIZE;
+        }
+    })
 })
 
 ///////////////////////////////////////////////////////////////////////////////////

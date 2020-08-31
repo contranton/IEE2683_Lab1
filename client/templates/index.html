@@ -188,19 +188,19 @@
             </label>
             <select name="refresh-rate" id="refresh-rate">
                 <option value="fast">Alta (tiempo real)</option>
-                <option value="med">Media (÷3)</option>
-                <option value="slow">Baja (÷9)</option>
+                <option value="med">Media (÷10)</option>
+                <option value="slow">Baja (÷100)</option>
             </select>
             <br>
-            <!-- Color Scheme -->
-            <!-- <label for="refresh-rate">
-                <a title="Más alto => Gráficos más suaves pero mayor consumo de CPU">?</a> Tasa visual
+            <!-- Plot range -->
+            <label for="plot-window">
+                <a title="Rango de tiempo para los gráficos">?</a> Ancho de gráficos
             </label>
-            <select name="refresh-rate" id="refresh-rate">
-                <option value="fast">Alta (tiempo real)</option>
-                <option value="med">Media (÷5)</option>
-                <option value="slow">Baja (÷120)</option>
-            </select> -->
+            <select name="plot-window" id="plot-window">
+                <option value=1000>Pequeña</option>
+                <option value=10000>Media</option>
+                <option value=100000>Grande</option>
+            </select>
         </div>
     </div>
 
