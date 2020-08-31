@@ -35,24 +35,6 @@
                 <ul id="users"></ul>
             </div>
 
-            <!-- Plant parameters -->
-
-            <div id="params-div">
-                <table style="width:100%">
-                    <tr>
-                        <th class="th-bottom-divider" colspan="2">Parametros del sistema</th>
-                    </tr>
-                    <tr>
-                        <th class="left">Gamma 1</th>
-                        <th class="right"><input class="fit" type="number" id="gamma1" name="g1" value="0.4", min="0", max="1"></th>
-                    </tr>
-                    <tr>
-                        <th class="left">Gamma 2</th>
-                        <th class="right"><input class="fit" type="number" id="gamma2" name="g2" value="0.4", min="0", max="1"></th>
-                    </tr>
-                </table>
-            </div>
-
             <h1>Controlador</h1>
             <input type="submit" style="width:100%;" value="Control Manual" id="ctrl-mode">
 
@@ -136,18 +118,9 @@
                         <th class="left">Ki</th>
                         <th class="right"><input class="fit" type="number" id="Ki-gain" name="Ki" value="0.0"></th>
                     </tr>
-                    <!-- Anti windup -->
                     <tr>
-                        <th class="th-bottom-divider" colspan="2">Anti <i>wind-up</i></th>
-                    </tr>
-                    <tr>
-                        <th class="left">Activar</th>
+                        <th class="left">Activar <i>anti-windup</i></th>
                         <th class="right"><input type="checkbox" name="windup-on" id="antiwindup-on"></th>
-                    </tr>
-
-                    <tr>
-                        <th class="left">Valor</th>
-                        <th class="right"><input type="number" id="antiwindup-gain" name="Ki-windup" value="0.0"></th>
                     </tr>
 
                 </table>
@@ -158,7 +131,7 @@
             <div class="row, chart" id="v1"></div>
             <div class="row, chart" id="v2"></div>
 
-            <h1 style="margin-bottom:-10px">Alarmas</h1>
+            <h1 style="margin-bottom:0">Alarmas</h1>
             <div id="alarm-container" style="display: grid;grid-template-columns: auto auto;justify-content: space-evenly;">
                 <div class="alarm" id="1" state="good">Tanque 1<h3></h3></div>
                 <div class="alarm" id="2" state="good">Tanque 2<h3></h3></div>
@@ -175,9 +148,22 @@
         </div>
     </div>
     <div style="height:10vh" class="row">
-        <div class="col3">
-            <h1>Column 1</h1>
+        <!-- Plant parameters -->
+        
+        <div class="col3" id="params-div">
+            <h1 style="margin-bottom:0">Parametros de la planta</h1>
+            <table style="width:100%">
+                <tr>
+                    <th class="left">Gamma 1</th>
+                    <th class="right"><input class="fit" type="number" id="gamma1" name="g1" value="0.4", min="0", max="1"></th>
+                </tr>
+                <tr>
+                    <th class="left">Gamma 2</th>
+                    <th class="right"><input class="fit" type="number" id="gamma2" name="g2" value="0.4", min="0", max="1"></th>
+                </tr>
+            </table>
         </div>
+    
         <div class="col3">
             <h1>Descargas</h1>
             <div id="dl-buttons"style="display: grid;grid-template-columns: auto auto auto;justify-content: space-evenly;" >

@@ -26,20 +26,28 @@
 - OPC para Python: <https://python-opcua.readthedocs.io/en/latest/>
 - OPC UA detallado: <https://documentation.unified-automation.com/uasdkhp/1.0.0/html/_l1_opc_ua_fundamentals.html>
 
+# Known bugs
+
+- Downloading a file logs out the user
+- Timestamps are willy-nilly in the downloaded data
+
 # TODO:
 
 ## High priority
+
 - !! Datos
   - Begin save, end save (client-sied)
   - Extensiones
 - Filtro para componente derivada del PID
 - Entrada manual sinusoidal
   
-  ## Low priority
+## Low priority
+
 - Refresh-rate visual debe basarse en segundos transcurridos y no el número de datos recibidos
   - El segundo varía muchísimo dependiendo del rendimiento del servidor
 
 ## Done
+
 - (DONE) Dashboard.py debe tener **una sola** función que broadcastee el estado del controlador
   - manual-ctrl-available: {true} o {false, "editor": NombreEditando}
   - Ganancias del PID

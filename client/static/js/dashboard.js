@@ -1,7 +1,7 @@
 // TODO: Handle refreshing
 
 // Horizontal size of the plot window
-var T_SIZE = 10000;
+var T_SIZE = 100000;
 
 // Data arrays (independent from plotting) to be updated from live data
 // Need to be explicitly declared to work with TimeChart
@@ -133,6 +133,14 @@ $(document).ready(function () {
         $("#ctrl-div").find("#ctrl-sine").show();
     })
 
+    update_sine = function(id){
+        freq =   parseFloat($("#" + id + "-sine-freq").val());
+        amp =    parseFloat($("#" + id + "-sine-amp").val());
+        offset = parseFloat($("#" + id + "-sine-offset").val());
+        send_freq = 10*freq; // Send samples at 5x the Nyquist frequency
+        sines[id] = setInterval(sine, send_freq, id[1], freq, amp, offset);
+    }
+
     $("[id*=sine-on]").click(function(){
         id = $(this).attr('id').slice(0, 2); // v2-sine-on -> v2
 
@@ -145,11 +153,15 @@ $(document).ready(function () {
         // Else, start the sine
         }else{
             $(this).attr('value', "Stop");
-            freq =   parseFloat($("#" + id + "-sine-freq").val());
-            amp =    parseFloat($("#" + id + "-sine-amp").val());
-            offset = parseFloat($("#" + id + "-sine-offset").val());
-            send_freq = 10*freq; // Send samples at 5x the Nyquist frequency
-            sines[id] = setInterval(sine, send_freq, id[1], freq, amp, offset);
+            update_sine(id);
+        }
+    })
+
+    $("#ctrl-sine").find("input:not([id*=on])").change(function(){
+        id = $(this).attr('id').slice(0, 2); // v2-sine-on -> v2
+        if(sines[id]!=null){
+            clearInterval(sines[id]);
+            update_sine(id);
         }
     })
 
@@ -252,7 +264,7 @@ $(document).ready(function () {
             // Cast to float
             value = parseFloat($(this).val());
             try{
-                if(id_.contains("voltage")){
+                if(id_.includes("voltage")){
                     id_ = id_.slice(0, id_.indexOf("-"));
                 }
             }catch(error){}

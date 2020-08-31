@@ -45,7 +45,7 @@ def event_stream(lock, do_stop):
         d = dict(t=t,
                  data=dict(h1=h[1], h2=h[2], h3=h[3], h4=h[4],
                            v1=v[1], v2=v[2]))
-        d_ = dict(t=t, **d['data'])
+        d_ = dict(t=t/1000, **d['data'])
         data.append(d_)
         with lock:
             socketio.emit('server_push', {'data': d, 'alarms': a}, broadcast=True, namespace='/dashboard')
@@ -78,7 +78,7 @@ app = Flask(__name__)
 app.secret_key = 'omg nadie va a saber que esta es mi 11ave secreta por favor no me 1a roben pls :3'
 
 # WebSocket for low-latency broadcasting
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet')
 
 # Login manager for authentification
 login_manager = LoginManager()
@@ -253,27 +253,35 @@ def parse_input(msg):
 
 #########################################
 # Downloads
+global data_n
+data_n = 0
 
-@app.route("/download-JSON", methods=['POST', 'GET'])
+@app.route("/download-JSON", methods=['GET'])
 def download_json():
+    global data_n
+    data_n += 1
     buffer = BytesIO()
     buffer.write(bytes(pandas.DataFrame(data).to_json(), 'utf-8')); buffer.seek(0)
     print(buffer.getvalue())
-    return send_file(buffer, as_attachment=True, attachment_filename="data.json", cache_timeout=0)
+    return send_file(buffer, as_attachment=True, attachment_filename=f"data{data_n}.json", cache_timeout=0)
 
-@app.route("/download-CSV", methods=['POST', 'GET'])
+@app.route("/download-CSV", methods=['GET'])
 def download_csv():
+    global data_n
+    data_n += 1
     buffer = BytesIO()
     buffer.write(bytes(pandas.DataFrame(data).to_csv(), 'utf-8')); buffer.seek(0)
     print(buffer.getvalue())
-    return send_file(buffer, as_attachment=True, attachment_filename="data.csv", cache_timeout=0)
+    return send_file(buffer, as_attachment=True, attachment_filename=f"data{data_n}.csv", cache_timeout=0)
 
-@app.route("/download-XLS", methods=['POST', 'GET'])
+@app.route("/download-XLS", methods=['GET'])
 def download_xls():
+    global data_n
+    data_n += 1
     buffer = BytesIO()
     buffer.write(bytes(pandas.DataFrame(data).to_excel(), 'utf-8')); buffer.seek(0)
     print(buffer.getvalue())
-    return send_file(buffer, as_attachment=True, attachment_filename="data.xls", cache_timeout=0)
+    return send_file(buffer, as_attachment=True, attachment_filename=f"data{data_n}.xls", cache_timeout=0)
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
@@ -287,7 +295,7 @@ if __name__ == '__main__':
     p = Thread(target=event_stream, args=(lock, lambda: stop_thread))
     try:
         p.start()
-        socketio.run(app, debug=True, host='0.0.0.0')
+        socketio.run(app, debug=False, host='0.0.0.0')
     finally:
         stop_thread = True
         socketio.emit("server_force-disconnect", broadcast=True, namespace="/dashboard")

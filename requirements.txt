@@ -1,6 +1,10 @@
 gevent-websocket
+eventlet
 flask
 flask-socketio
 flask-login
 opcua
 numpy
+scipy
+pygame
+pandas
